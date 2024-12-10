@@ -1,4 +1,4 @@
-export default `\
+export default /*glsl*/`\
 #version 300 es
 #define SHADER_NAME geo-circle-layer-fragment-shader
 precision highp float;
@@ -6,6 +6,7 @@ precision highp float;
 in vec4 vColor;
 in vec2 unitPosition;
 in float radius;
+in vec2 center;
 
 out vec4 fragColor;
 
@@ -31,12 +32,12 @@ float distance_lnglat(float lng1, float lat1, float lng2, float lat2) {
 }
 void main(void) {
   vec2 pos = mercator_to_lnglat(unitPosition);
-  float dist = distance_lnglat(0.0, 0.0, pos.x, pos.y);
- if (dist > 9200.0) {
+  float dist = distance_lnglat(center.x, center.y, pos.x, pos.y);
+ if (dist * 1e3 > radius) {
   discard;
  }
   else {
-    fragColor = vec4(0.0, 0.0, 0.0, 0.1);
+      fragColor = vec4(0.0, 0.0, 0.0, 0.1);
  }
 }
 `;

@@ -27,8 +27,7 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
         attributeManager!.addInstanced({
             instanceCenter: {
                 size: 3,
-                type: 'float64',
-                fp64: this.use64bitPositions(),
+                type: 'float32',
                 transition: true,
                 accessor: "getCenter"
             },
@@ -58,6 +57,11 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
 
     draw({ uniforms }: any): void {
         const model = this.state.model;
+        model!.setUniforms(uniforms);
+        model?.setUniforms({
+            pixelUnprojectionMatrix: this.context.viewport.pixelUnprojectionMatrix,
+            viewportSize: [this.context.viewport.width, this.context.viewport.height],
+        });
         model!.draw(this.context.renderPass);
     }
 
@@ -75,21 +79,6 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
             this.state.model = this._getModel();
             this.getAttributeManager()!.invalidateAll();
         }
-
-        if (params.changeFlags.viewportChanged) {
-            const viewport = this.context.viewport;
-            const projectPosition = (pos: number[]) => viewport.projectFlat(viewport.unproject(pos));
-            //this.state.worldPositions = [
-            //    ...projectPosition([0, 0, 0]),
-            //    ...projectPosition([viewport.width, 0, 0]),
-            //    ...projectPosition([0, viewport.height, 0]),
-            //    ...projectPosition([viewport.width, viewport.height, 0]),
-            //];
-            //this.state.worldPositions = new Float32Array([0,0, 100, 0, 0,100, 100,100]);
-            //console.log(this.state.worldPositions);
-            //this.getAttributeManager()?.invalidate("worldPositions");
-        }
-            
     }
 
     protected _getModel() {
@@ -100,18 +89,8 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
             -1,  1,  0,
              1,  1,  0
         ];
-        const viewport = this.context.viewport;
-        const projectPosition = (pos: number[]) => viewport.projectFlat(viewport.unproject(pos));
 
-        const a= [
-            ...projectPosition([0, viewport.height, 1]),
-            ...projectPosition([viewport.width, viewport.height, 1]),
-            ...projectPosition([0, 0, 1]),
-            ...projectPosition([viewport.width, 0, 1]),
-        ];
         return new Model(this.context.device, {
-           
-
             ...this.getShaders(),
             id: this.props.id,
             bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
@@ -119,7 +98,7 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
                 topology: 'triangle-strip',
                 attributes: {
                     positions: { size: 3, value: new Float32Array(positions) },
-                    worldPositions: {size: 2, value: new Float32Array(a) },
+                    //worldPositions: {size: 2, value: new Float32Array(a) },
                 }
             }),
             isInstanced: true
