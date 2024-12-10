@@ -15,22 +15,17 @@ out vec2 unitPosition;
 out float radius;
 out vec2 center;
 
-vec4 pixelsToWorld(vec3 pixel) {
-  pixel.xy += 1.0;
-  pixel.xy *= 0.5;
-  pixel.y = 1.0 - pixel.y;
-  vec4 a = vec4(pixel.xy * viewportSize, 1.0, 1.0);
-  vec4 result =  pixelUnprojectionMatrix * a;
-  return result / result.w;
-}
 
 void main(void) {
 
   vColor = instanceColor;
   radius = instanceRadius;
-  unitPosition = pixelsToWorld(positions).xy;
+  //unitPosition = pixelsToWorld(positions).xy;
   center = instanceCenter.xy;
   //unitPosition = worldPositions;
-  gl_Position = vec4(positions.xyz, 1.0);
+
+  vec3 positionsGeo = positions * vec3(180.0, 85.0, 0.0);
+  gl_Position = project_position_to_clipspace(positionsGeo, vec3(0.0), vec3(0.0), geometry.position);
+  unitPosition = geometry.position.xy;
 }
 `;

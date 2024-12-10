@@ -1,6 +1,8 @@
 export default /*glsl*/`\
 #version 300 es
 #define SHADER_NAME geo-circle-layer-fragment-shader
+#define SMOOTH_EDGE_RADIUS2 500.0
+
 precision highp float;
 
 in vec4 vColor;
@@ -14,6 +16,10 @@ const float R = 6371.0;
 const float TILE_SIZE = 512.0;
 const float PI = 3.1415926536;
 const float WORLD_SCALE = TILE_SIZE / PI / 2.0;
+
+float smoothedge2(float edge, float x) {
+  return smoothstep(edge - SMOOTH_EDGE_RADIUS2, edge + SMOOTH_EDGE_RADIUS2, x);
+}
 
 vec2 mercator_to_lnglat(vec2 xy) { 
    xy /= WORLD_SCALE; 
@@ -30,14 +36,18 @@ float distance_lnglat(float lng1, float lat1, float lng2, float lat2) {
   float c = 2.0 * atan(sqrt(a), sqrt(1.0 - a));
   return R * c;
 }
+
 void main(void) {
+
   vec2 pos = mercator_to_lnglat(unitPosition);
-  float dist = distance_lnglat(center.x, center.y, pos.x, pos.y);
- if (dist * 1e3 > radius) {
-  discard;
- }
-  else {
-      fragColor = vec4(0.0, 0.0, 0.0, 0.1);
- }
+  float dist = distance_lnglat(center.x, center.y, pos.x, pos.y) * 1e3;
+  float inCircle = smoothedge2(dist, radius);
+
+  if (inCircle == 0.0) {
+    discard;
+  }
+
+  fragColor = vColor;
+  fragColor.a *= inCircle;
 }
 `;
