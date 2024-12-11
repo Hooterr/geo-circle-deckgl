@@ -1,9 +1,8 @@
-import { Accessor, Color, Layer, LayerContext, LineLayer, Position } from 'deck.gl';
 import { LayerDataSource, project32, UpdateParameters } from '@deck.gl/core';
-import { Geometry } from '@luma.gl/engine';
-import { Model } from '@luma.gl/engine';
-import vs from './geo-circle-layer-vertex.glsl';
+import { Geometry, Model } from '@luma.gl/engine';
+import { Accessor, Color, Layer, LayerContext, Position } from 'deck.gl';
 import fs from './geo-circle-layer-fragment.glsl';
+import vs from './geo-circle-layer-vertex.glsl';
 
 export type GeoCircleProps<DataT = unknown> = _GeoCircleProps<DataT>;
 
@@ -45,23 +44,10 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
                 defaultValue: [0, 0, 0, 255],
             },
         });
-       //attributeManager!.add({
-       //    worldPositions: {
-       //     id: 'worldPositions',
-       //        size: 2,
-       //        type: 'float32', 
-       //        stepMode: "vertex",
-       //        accessor: () => this.state.worldPositions},
-       //});
     }
 
-    draw({ uniforms }: any): void {
+    draw(): void {
         const model = this.state.model;
-        model!.setUniforms(uniforms);
-        model?.setUniforms({
-            pixelUnprojectionMatrix: this.context.viewport.pixelUnprojectionMatrix,
-            viewportSize: [this.context.viewport.width, this.context.viewport.height],
-        });
         model!.draw(this.context.renderPass);
     }
 
@@ -98,7 +84,6 @@ export class GeoCircle<DataT = any, ExtraPropsT extends {} = {}> extends Layer<E
                 topology: 'triangle-strip',
                 attributes: {
                     positions: { size: 3, value: new Float32Array(positions) },
-                    //worldPositions: {size: 2, value: new Float32Array(a) },
                 }
             }),
             isInstanced: true
